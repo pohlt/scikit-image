@@ -4,9 +4,13 @@ Circular Thresholding
 =====================
 
 Circular thresholding is a special case of thresholding for circular signals
-(e.g. hue) to create a binary image from a grayscale image [1]_.
+(e.g. hue values) to create a binary image from a grayscale image [1]_. The
+implementation is based on the method proposed by Yu-Kun Lai and Paul L. Rosin [2]_
+([preprint PDF](https://users.cs.cf.ac.uk/Yukun.Lai/papers/thresholdingTIP.pdf)).
+
 
 .. [1] https://en.wikipedia.org/wiki/Circular_thresholding
+.. [2] https://ieeexplore.ieee.org/document/6698338
 """
 
 import numpy as np
@@ -14,16 +18,16 @@ import matplotlib.pyplot as plt
 from skimage.color.colorconv import hsv2rgb
 from skimage.filters import threshold_circular_otsu, threshold_otsu
 
-######################################################################
-# We illustrate how to apply one of these thresholding algorithms.
-# Otsu's method [2]_ calculates an "optimal" threshold (marked by a red line in the
-# histogram below) by maximizing the variance between two classes of pixels,
-# which are separated by the threshold. Equivalently, this threshold minimizes
-# the intra-class variance.
-#
-# .. [2] https://en.wikipedia.org/wiki/Otsu's_method
-# https://users.cs.cf.ac.uk/Yukun.Lai/papers/thresholdingTIP.pdf
-
+#########################################################################
+# In this example, the task is to separate the disc in the foreground
+# from the background. Both disc and background have a similar hue which
+# slightly shifts from one row to the next (left column).
+# The two red lines in the histograms of the center column show the two
+# threshold values of the circular Otsu method; the dashed blue line
+# shows the threshold of the normal Otsu algorithm which has often
+# cannot correctly separate the disc from the background.
+# The right column shows the binary masks obtained with thresholds of the
+# circular Otsu algorithm.
 
 mask = np.fromfunction(lambda r, c: (r - 32) ** 2 + (c - 32) ** 2 < 300, (65, 65))
 
@@ -45,28 +49,12 @@ for i in range(5):
     # equivalent:
     # t = threshold_circular_otsu(val_range=(0, 1), hist=c)
     for v in t:
-        ax[i, 1].axvline(v, c="#f00f", lw=2)
-    ax[i, 1].axvline(threshold_otsu(hue), c="#0a0", ls="dashed", lw=2)
+        ax[i, 1].axvline(v, c="#f00", lw=2)
+    ax[i, 1].axvline(threshold_otsu(hue), c="#00f", ls="dashed", lw=2)
     ax[i, 1].plot(0.5 * (x[1:] + x[:-1]), c, color="#000")
 
     ax[i, 2].imshow((hue < t[0]) | (hue > t[1]), cmap="gray")
     ax[i, 2].axis("off")
+
 plt.tight_layout()
-plt.show()
-
-
-######################################################################
-# If you are not familiar with the details of the different algorithms and the
-# underlying assumptions, it is often difficult to know which algorithm will give
-# the best results. Therefore, Scikit-image includes a function to evaluate
-# thresholding algorithms provided by the library. At a glance, you can select
-# the best algorithm for your data without a deep understanding of their
-# mechanisms.
-#
-
-from skimage.filters import try_all_threshold
-
-img = data.page()
-
-fig, ax = try_all_threshold(img, figsize=(10, 8), verbose=False)
 plt.show()

@@ -1341,7 +1341,52 @@ def threshold_multiotsu(image=None, classes=3, nbins=256, *, hist=None):
 
 
 def threshold_circular_otsu(image=None, nbins=256, *, val_range, hist=None):
-    """tbd"""
+    """Return two threshold values based on a modifed Otsu's method for circular
+    input data (e.g. hue values).
+
+    Either image or hist must be provided. If hist is provided, the image is ignored.
+
+    Parameters
+    ----------
+    image : (M, N[, ...]) ndarray, optional
+        Grayscale input image.
+    nbins : int, optional
+        Number of bins used to calculate histogram. Only even values are accepted.
+        This value is ignored if a histogram is provided. Default is 256.
+    value_range : 2-tuple of floats
+        The lower and upper range of the input image or histogram
+        (e.g. (0, 1) for normalized data; (0, 2π) for typical hue data).
+    hist : array, optional
+        Histogram from which to determine the thresholds. The histogram values
+        are expected to be equidistantly spread over the value range. If no hist
+        provided, this function will compute it from the image.
+
+
+    Returns
+    -------
+    threshold : 2-tuple of floats
+        Two threshold values which split the circular histogram into two classes.
+        It is guaranteed that `t[0] + 0.5 * (val_range[1] - val_range[0]) = t[1]`.
+
+    References
+    ----------
+    .. [1] Wikipedia, https://en.wikipedia.org/wiki/Otsu's_Method
+
+    Examples
+    --------
+    >>> from skimage.data import astronaut
+    >>> from skimage.color import rgb2hsv
+    >>> image = astronaut()
+    >>> hue = rgb2hsv(image)[..., 0]
+    >>> thresh = threshold_circular_otsu(image=hue, val_range=(0, 1))
+    >>> mask = (hue < thresh[0]) | (hue > thresh[1])
+    >>> image[mask] = [1, 0, 0]
+    >>> image[~mask] = [0, 0, 1]
+
+    Notes
+    -----
+    The input image must be grayscale.
+    """
 
     if image is not None and image.ndim > 2 and image.shape[-1] in (3, 4):
         warn(
