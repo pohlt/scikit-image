@@ -876,7 +876,7 @@ def threshold_minimum(image=None, nbins=256, max_num_iter=10000, *, hist=None):
     if len(maximum_idxs) != 2:
         raise RuntimeError('Unable to find two maxima in histogram')
     elif counter == max_num_iter - 1:
-        raise RuntimeError('Maximum iteration reached for histogram' 'smoothing')
+        raise RuntimeError('Maximum iteration reached for histogramsmoothing')
 
     # Find the lowest point between the maxima
     threshold_idx = np.argmin(smooth_hist[maximum_idxs[0] : maximum_idxs[1] + 1])
@@ -1359,7 +1359,9 @@ def threshold_circular_otsu(image=None, nbins=256, *, val_range, hist=None):
             warn("Both image and hist were provided; the image will be ignored.")
         nbins = len(hist)
         ss = (val_range[1] - val_range[0]) / nbins
-        x = np.linspace(val_range[0] + 0.5 * ss, val_range[1] - 0.5 * ss, nbins, dtype=np.float32)
+        x = np.linspace(
+            val_range[0] + 0.5 * ss, val_range[1] - 0.5 * ss, nbins, dtype=np.float32
+        )
         h = hist
 
     if nbins < 4:
@@ -1381,7 +1383,9 @@ def threshold_circular_otsu(image=None, nbins=256, *, val_range, hist=None):
         mean = (x * h).sum()
         return omega, mean, (np.square(x - mean / omega) * h).sum()
 
-    def update(ia: int, ie: int, omega: float, mean: float) -> tuple[float, float, float]:
+    def update(
+        ia: int, ie: int, omega: float, mean: float
+    ) -> tuple[float, float, float]:
         omega += he[ie] - he[ia]
         mean += xe[ie] * he[ie] - xe[ia] * he[ia]
         ia += 1
